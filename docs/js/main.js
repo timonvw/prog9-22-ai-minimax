@@ -116,7 +116,7 @@ class GameState {
         this.kingPos = kingPos;
         this.knightPositions = knightPositions;
     }
-    getScore() {
+    getScore(knight = undefined) {
         for (let z of this.knightPositions) {
             if (Board.samePosition(z, this.kingPos)) {
                 return [-100, true];
@@ -124,6 +124,11 @@ class GameState {
         }
         if (this.kingPos[1] == 0) {
             return [100, true];
+        }
+        if (knight) {
+            console.log("KNIGHT POS: " + this.knightPositions[knight] + " KING POS: " + this.kingPos);
+        }
+        else {
         }
         return [0, false];
     }
@@ -227,7 +232,6 @@ class GameAI {
     static minimax(depth, gameState, isMax, scoreIndex, scores, maxDepth, king, knights) {
         if (depth === maxDepth) {
             console.log("Reached max depth", scores);
-            gameState.getScore();
             return scores[scoreIndex];
         }
         if (isMax) {
@@ -237,10 +241,10 @@ class GameAI {
                 let knightMoves = knights[i].getMoves(newGameState.knightPositions[i]);
                 console.log("Knight moves " + i, knightMoves);
                 for (let j = 0; j < knightMoves.length; j++) {
-                    let score = GameAI.minimax(depth + 1, newGameState, false, scoreIndex + 1, scores, maxDepth, king, knights);
-                    if (score > bestScore) {
-                        bestScore = score;
-                    }
+                    newGameState.knightPositions[i] = knightMoves[j];
+                    let score = newGameState.getScore(i);
+                    console.log(score);
+                    GameAI.minimax(depth + 1, newGameState, false, scoreIndex + 1, scores, maxDepth, king, knights);
                 }
             }
             scores[scoreIndex] = bestScore;

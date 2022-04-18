@@ -22,7 +22,8 @@ class GameAI {
         // stop if the last node has been reached
         if(depth === maxDepth) {
             console.log("Reached max depth", scores);
-            gameState.getScore();
+            // backtrack and calculate the best path 
+            // gameState.getScore();
             return scores[scoreIndex];
         }
 
@@ -35,14 +36,14 @@ class GameAI {
                 console.log("Knight moves " + i , knightMoves);
 
                 for(let j = 0; j < knightMoves.length; j++) {
-                    // newGameState.knightPositions[i] = knightMoves[j];
-                    // TODO: change the position of the knight and calculate the distance to the king
-                    // TODO: gameState.getScore();
-                    let score = GameAI.minimax(depth + 1, newGameState, false, scoreIndex + 1, scores, maxDepth, king, knights);
+                    newGameState.knightPositions[i] = knightMoves[j];
+                    let score = newGameState.getScore(i);
                     // TODO: Change with calculation
-                    if(score > bestScore) {
-                        bestScore = score;
-                    }
+                    // if(score > bestScore) {
+                    //     bestScore = score;
+                    // }
+                    console.log(score);
+                    GameAI.minimax(depth + 1, newGameState, false, scoreIndex + 1, scores, maxDepth, king, knights);
                 }
             }
             scores[scoreIndex] = bestScore;
