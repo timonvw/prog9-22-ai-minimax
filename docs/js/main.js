@@ -116,21 +116,20 @@ class GameState {
         this.kingPos = kingPos;
         this.knightPositions = knightPositions;
     }
-    getScore(knight = undefined) {
+    getScore() {
         for (let z of this.knightPositions) {
             if (Board.samePosition(z, this.kingPos)) {
-                return [-100, true];
+                return [100, true];
             }
         }
         if (this.kingPos[1] == 0) {
-            return [100, true];
+            return [-100, true];
         }
-        if (knight) {
-            console.log("KNIGHT POS: " + this.knightPositions[knight] + " KING POS: " + this.kingPos);
-        }
-        else {
-        }
-        return [0, false];
+        let scoreKing = (100 + (this.kingPos[1] * -10)) * -1;
+        let knightsDistance = this.knightPositions.map(k => Math.floor(Math.sqrt(Math.pow(k[0] - this.kingPos[0], 2) + Math.pow(k[1] - this.kingPos[1], 2))));
+        let mediumKnights = ((knightsDistance.reduce((a, b) => a + b)) / knightsDistance.length);
+        let scoreKnights = (100 - (mediumKnights * 10));
+        return [scoreKnights + scoreKing, false];
     }
     copy() {
         const knightPosCopy = Object.assign([], this.knightPositions);
@@ -229,46 +228,40 @@ class Knight extends ChessPiece {
 }
 window.customElements.define("knight-component", Knight);
 class GameAI {
-    static minimax(depth, gameState, isMax, scoreIndex, scores, maxDepth, king, knights) {
-        if (depth === maxDepth) {
-            console.log("Reached max depth", scores);
-            return scores[scoreIndex];
+    static minimax(depth, gameState, isMax, maxDepth, king, knights) {
+        let score = gameState.getScore();
+        if (depth === maxDepth || score[1]) {
+            console.log("Reached max depth");
+            return score[0];
         }
         if (isMax) {
             let bestScore = -Infinity;
             for (let i = 0; i < gameState.knightPositions.length; i++) {
                 let newGameState = gameState.copy();
                 let knightMoves = knights[i].getMoves(newGameState.knightPositions[i]);
-                console.log("Knight moves " + i, knightMoves);
                 for (let j = 0; j < knightMoves.length; j++) {
                     newGameState.knightPositions[i] = knightMoves[j];
-                    let score = newGameState.getScore(i);
-                    console.log(score);
-                    GameAI.minimax(depth + 1, newGameState, false, scoreIndex + 1, scores, maxDepth, king, knights);
+                    bestScore = Math.max(bestScore, GameAI.minimax(depth + 1, newGameState, false, maxDepth, king, knights));
                 }
             }
-            scores[scoreIndex] = bestScore;
+            console.log(`bestscore: ${bestScore} and depth: ${depth}`);
             return bestScore;
         }
         else {
-            let bestScore = -Infinity;
+            let bestScore = Infinity;
             let newGameState = gameState.copy();
             let kingMoves = king.getMoves(newGameState.kingPos);
-            console.log("King moves ", kingMoves);
             for (let j = 0; j < kingMoves.length; j++) {
-                let score = GameAI.minimax(depth + 1, newGameState, true, scoreIndex + 1, scores, maxDepth, king, knights);
-                if (score > bestScore) {
-                    bestScore = score;
-                }
+                newGameState.kingPos = kingMoves[j];
+                bestScore = Math.min(bestScore, GameAI.minimax(depth + 1, newGameState, true, maxDepth, king, knights));
             }
-            scores[scoreIndex] = bestScore;
             return bestScore;
         }
     }
     static moveKnight(king, knights, gameState) {
         let t0 = performance.now();
-        this.minimax(0, gameState, true, 0, [], 3, king, knights);
-        console.log(king);
+        let best = this.minimax(0, gameState, true, 3, king, knights);
+        console.log("FINAL: " + best);
         let i = Math.floor(Math.random() * Math.floor(knights.length));
         let legalMoves = knights[i].getMoves();
         console.log(legalMoves);

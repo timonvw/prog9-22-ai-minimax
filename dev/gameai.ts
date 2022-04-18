@@ -5,26 +5,23 @@ class GameAI {
     // depth     -> current depth
     // gameState -> current game state
     // isMax     -> true if it's the horse his turn (maximizer), false if it's the King his turn (minimizer)
-    // nodeIndex -> index of the current node to get te right scores
-    // scores    -> array of scores for all nodes
     // maxDepth  -> maximum depth of the tree
+    // king      -> king object
+    // knights   -> array of knight objects
     public static minimax(
         depth:number,
         gameState:GameState,
         isMax:boolean,
-        scoreIndex:number,
-        scores:number[],
         maxDepth:number,
         king: King,
         knights: Knight[]
         ): number {
-        // debugger;
+        let score = gameState.getScore();
+
         // stop if the last node has been reached
-        if(depth === maxDepth) {
-            console.log("Reached max depth", scores);
-            // backtrack and calculate the best path 
-            // gameState.getScore();
-            return scores[scoreIndex];
+        if(depth === maxDepth || score[1]) {
+            console.log("Reached max depth");
+            return score[0];
         }
 
         if(isMax) {
@@ -33,38 +30,24 @@ class GameAI {
             for(let i = 0; i < gameState.knightPositions.length; i++) {
                 let newGameState = gameState.copy();
                 let knightMoves = knights[i].getMoves(newGameState.knightPositions[i]);
-                console.log("Knight moves " + i , knightMoves);
 
                 for(let j = 0; j < knightMoves.length; j++) {
                     newGameState.knightPositions[i] = knightMoves[j];
-                    let score = newGameState.getScore(i);
-                    // TODO: Change with calculation
-                    // if(score > bestScore) {
-                    //     bestScore = score;
-                    // }
-                    console.log(score);
-                    GameAI.minimax(depth + 1, newGameState, false, scoreIndex + 1, scores, maxDepth, king, knights);
+                    bestScore = Math.max(bestScore, GameAI.minimax(depth + 1, newGameState, false, maxDepth, king, knights));
                 }
             }
-            scores[scoreIndex] = bestScore;
+            console.log(`bestscore: ${bestScore} and depth: ${depth}`);
             return bestScore;
         } else {
             // minimizer
-            let bestScore = -Infinity;
+            let bestScore = Infinity;
             let newGameState = gameState.copy();
             let kingMoves = king.getMoves(newGameState.kingPos);
-            console.log("King moves ", kingMoves);
 
             for(let j = 0; j < kingMoves.length; j++) {
-                // move the king and calculate the distance to otherside of the board
-                // TODO: gameState.getScore();
-                let score = GameAI.minimax(depth + 1, newGameState, true, scoreIndex + 1, scores, maxDepth, king, knights);
-                // TODO: Change with calculation
-                if(score > bestScore) {
-                    bestScore = score;
-                }
+                newGameState.kingPos = kingMoves[j];
+                bestScore = Math.min(bestScore, GameAI.minimax(depth + 1, newGameState, true, maxDepth, king, knights));
             }
-            scores[scoreIndex] = bestScore;
             return bestScore;
         }
     }
@@ -75,15 +58,9 @@ class GameAI {
     public static moveKnight(king:King, knights: Knight[], gameState:GameState) {
         let t0 = performance.now();
 
-         // TODO: remove random move, amnd replace with AI move
-
-         //TODO calculate minimax for all horses and pick the best one
-
         // RANDOM MOVE - START ------------------
-
-        this.minimax(0, gameState, true, 0, [], 3, king, knights);
-
-        console.log(king); // only to avoid error: 'king' is declared but its value is never read.
+        let best = this.minimax(0, gameState, true, 3, king, knights);
+        console.log("FINAL: " + best);
 
         // choose knight to move
         let i:number =  Math.floor(Math.random() * Math.floor(knights.length));

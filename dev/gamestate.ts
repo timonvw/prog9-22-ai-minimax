@@ -9,32 +9,26 @@ class GameState {
 
     // return the value of the state and if the state is terminal (game over)
     // higher value is better gamestate for the king (100 is win, -100 is lose)
-    public getScore(knight: number | undefined = undefined) : [number, boolean] {
+    public getScore() : [number, boolean] {
         // game over
         for (let z of this.knightPositions) {
             if (Board.samePosition(z, this.kingPos)) {
-                return [-100, true];
+                return [100, true];
             }
         }
 
         // win
         if (this.kingPos[1] == 0) {
-            return[100, true];
+            return[-100, true];
         }
-
-        if(knight) {
-            console.log("KNIGHT POS: " + this.knightPositions[knight] + " KING POS: " + this.kingPos)
-        } else {
-
-        }
-        // not over yet, return an evaluation of the gamestate
-        // higher number is better for king, lower better for the knights
-
-        // TODO: calculate the value of the gamestate scoren ding
-        // TODO: calculate with distance to other players
-
-        // Hint: use the position of the king stored in this.kingPos
-        return [0, false]
+        
+        // close the king to 0 the lower the score
+        let scoreKing = (100 + (this.kingPos[1] * -10)) * -1;
+        // calculate the distance between the knights and the king
+        let knightsDistance = this.knightPositions.map(k => Math.floor(Math.sqrt(Math.pow(k[0] - this.kingPos[0], 2) + Math.pow(k[1] - this.kingPos[1], 2))));
+        let mediumKnights = ((knightsDistance.reduce((a, b) => a + b)) / knightsDistance.length);
+        let scoreKnights = (100 - (mediumKnights * 10));
+        return [scoreKnights + scoreKing, false];
     }
 
     // create a copy of the gamestate (needed by AI to look into the future)
