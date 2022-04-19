@@ -27,7 +27,7 @@ class GameState {
         // calculate the distance between the knights and the king
         let knightsDistance = this.knightPositions.map(k => Math.floor(Math.sqrt(Math.pow(k[0] - this.kingPos[0], 2) + Math.pow(k[1] - this.kingPos[1], 2))));
         let mediumKnights = ((knightsDistance.reduce((a, b) => a + b)) / knightsDistance.length);
-        let scoreKnights = (100 - (mediumKnights * 10));
+        let scoreKnights = Math.floor((100 - (mediumKnights * 10)));
         return [scoreKnights + scoreKing, false];
     }
 
